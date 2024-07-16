@@ -41,7 +41,7 @@
       <br />
       selected period {format(start * duration)} - {format(end * duration)}
     </p>
-    <div class="flex flex-wrap gap-3">
+    <div class="flex flex-wrap gap-3 select-none">
       {#each highlights as [highlightTime, highlightUrl] (`highlight_${highlightTime}`)}
         {#if (highlightTime / duration >= start && highlightTime / duration <= end) || getNestedArrayIndex( selectedHighlights, [highlightTime, highlightUrl] ) !== -1}
           <!-- svelte-ignore a11y-click-events-have-key-events -->
