@@ -59,11 +59,12 @@
 <div
   class="flex flex-row h-full select-none whitespace-nowrap transform overflow-clip"
   bind:this={body}>
-  {#each visiblePreviews as [time, url] (time)}
+  {#each visiblePreviews as [time, url] (`preview_${time}`)}
     <img
       src={url}
       style="left: {100 * (time / duration)}%"
       class="absolute top-0 h-full -translate-x-1/2 select-none"
-      alt="time" />
+      alt={`preview_${time}`}
+      draggable="false" />
   {/each}
 </div>

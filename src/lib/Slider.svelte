@@ -130,14 +130,18 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
+    style="left: {100 * start}%; right: {100 * (1 - end)}%;"
+    class="absolute top-0 h-full bg-blue-300">
+  </div>
+  <div class="py-2 h-full" bind:this={previewContainer}>
+    <Preview {previews} {duration} {previewContainer} />
+  </div>
+  <div
     bind:this={body}
     use:draggable
     on:dragmove|preventDefault|stopPropagation={setBodyPosition}
     style="left: {100 * start}%; right: {100 * (1 - end)}%;"
-    class="absolute top-0 h-full bg-blue-300 bottom-0">
-  </div>
-  <div class="py-2 h-full" bind:this={previewContainer}>
-    <Preview {previews} {duration} {previewContainer} />
+    class="absolute top-0 h-full bg-none">
   </div>
   <div
     bind:this={leftHandle}

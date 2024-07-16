@@ -1,6 +1,8 @@
 <!-- https://svelte.dev/repl/media-elements -->
 
 <script>
+  import { format } from "$lib/utils.js"
+
   // These values are bound to properties of the video
   export let poster, src
 
@@ -8,10 +10,20 @@
   export let duration
   export let paused = true
 
+  let showInfo = true
+  let showInfoTimeout
+
+  let video
+
   // Used to track time of last mouse down event
   let lastMouseDown
 
   function handleMove(e) {
+    // Make the info visible, but fade out after 2s of inactivity
+    clearTimeout(showInfoTimeout)
+    showInfoTimeout = setTimeout(() => (showInfo = false), 2000)
+    showInfo = true
+
     if (!duration) return // video not loaded yet
     if (e.type !== "touchmove" && !(e.buttons & 1)) return // mouse not down
 
@@ -26,22 +38,33 @@
   }
 
   function handleMouseup(e) {
-    if (e.button === 0 && new Date() - lastMouseDown < 1000) {
-      if (paused) e.target.play()
-      else e.target.pause()
+    if (e.button === 0 && new Date() - lastMouseDown < 300) {
+      if (paused) video.play()
+      else video.pause()
+
+      // Make the info visible, but fade out after 2s of inactivity
+      clearTimeout(showInfoTimeout)
+      showInfoTimeout = setTimeout(() => (showInfo = false), 2000)
+      showInfo = true
     }
   }
 </script>
 
-<video
-  {poster}
-  {src}
-  on:mousemove={handleMove}
-  on:touchmove|preventDefault={handleMove}
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div
+  class="transform"
   on:mousedown={handleMousedown}
   on:mouseup={handleMouseup}
-  bind:currentTime={time}
-  bind:duration
-  bind:paused>
-  <track kind="captions" />
-</video>
+  on:mousemove={handleMove}
+  on:touchmove|preventDefault={handleMove}>
+  <video {poster} {src} bind:this={video} bind:currentTime={time} bind:duration bind:paused>
+    <track kind="captions" />
+  </video>
+  <div
+    class="absolute top-0 w-full p-3 content-center text-white bg-gradient-to-b from-black/50 to-black/0 transition-opacity select-none"
+    style="opacity: {duration && showInfo ? 1 : 0}">
+    <b class="text-xl">{format(time)} / {format(duration)}</b>
+    <br />
+    click to {paused ? "play" : "pause"}, drag to seek
+  </div>
+</div>
