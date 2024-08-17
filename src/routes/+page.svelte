@@ -3,9 +3,9 @@
   import Slider from "$lib/Slider.svelte"
   import Preview from "$lib/Preview.svelte"
   import Video from "$lib/Video.svelte"
-  import { format, getNestedArrayIndex, waitUntil } from "$lib/utils.js"
+  import { formatBytes, formatTime, getNestedArrayIndex, waitUntil } from "$lib/utils.js"
   import { FFmpeg } from "@ffmpeg/ffmpeg"
-  import { fetchFile, toBlobURL } from "$lib/ffmpeg-utils.ts"
+  import { fetchFile, toBlobURL, downloadWithProgress } from "$lib/ffmpeg-utils.ts"
 
   let step = 0 // 0: loading; 1: capture highlights; 2: clip audio; 3: create video
   let loadingWhich = 0 // 0: ffmpeg; 1: source video
@@ -17,9 +17,20 @@
   let note = "When you capture a moment, we'll also keep the 5 seconds before it for later use."
   let warning = null
 
+  // step 0
+  let ffmpegProgress = "starting"
+  let ffmpegProgressCallback = (event) => {
+    ffmpegProgress = `${formatBytes(event.received)} / ${formatBytes(32129114)}`
+  }
+  let videoProgress = "starting"
+  let videoProgressCallback = (event) => {
+    videoProgress = `${formatBytes(event.received)} / ${formatBytes(event.total)}`
+  }
+
   // step 1
   let previews = []
   let highlights = []
+  let previewsProgress = 0
   const numberOfPreviews = 50
   let highlightsReady = false
 
@@ -34,10 +45,18 @@
     ffmpeg = new FFmpeg()
     await ffmpeg.load({
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm")
+      wasmURL: await toBlobURL(
+        `${baseURL}/ffmpeg-core.wasm`,
+        "application/wasm",
+        true,
+        ffmpegProgressCallback
+      )
     })
     loadingWhich = 1
-    await ffmpeg.writeFile(`main.${videoSourceFormat}`, await fetchFile(videoSource))
+    await ffmpeg.writeFile(
+      `main.${videoSourceFormat}`,
+      new Uint8Array(await downloadWithProgress(videoSource, videoProgressCallback))
+    )
     const data = await ffmpeg.readFile(`main.${videoSourceFormat}`)
     videoLocalURL = URL.createObjectURL(
       new Blob([data.buffer], { type: `video/${videoSourceFormat}` })
@@ -49,6 +68,10 @@
     waitUntil(
       () => duration > 0,
       async () => {
+        ffmpeg.on("log", ({ _, message }) => {
+          previewsProgress = message.match(/frame=\s*(\d+)/)
+          previewsProgress = previewsProgress ? parseInt(previewsProgress[1], 10) : 0
+        })
         await ffmpeg.exec([
           "-i",
           `main.${videoSourceFormat}`,
@@ -82,7 +105,7 @@
           {#if loadingWhich === 0}
             <h2 class="text-2xl font-bold text-slate-400">
               <span class="text-cyan-500 font-normal">Now loading</span>
-              depedencies ...
+              depedencies ... ({ffmpegProgress})
             </h2>
           {:else}
             <h2 class="text-2xl font-bold text-slate-400">
@@ -90,7 +113,7 @@
               depedencies.
               <br />
               <span class="text-cyan-500 font-normal">Now loading</span>
-              your video ...
+              your video ... ({videoProgress})
             </h2>
           {/if}
         </div>
@@ -118,7 +141,7 @@
               style="left: {100 * (highlightTime / duration)}%"
               class="absolute top-0 w-1 h-full bg-slate-600/50 -translate-x-1/2" />
           {/each}
-          <Preview {previews} {duration} {numberOfPreviews} slot="upper" />
+          <Preview {previews} {duration} {previewsProgress} {numberOfPreviews} slot="upper" />
         </Slider>
       {/if}
       {#if step === 2}
@@ -163,7 +186,7 @@
               disabled={!highlightsReady}
               on:click={async () => {
                 const currentTime = time
-                if (!highlights.some((h) => format(h[0]) === format(currentTime))) {
+                if (!highlights.some((h) => formatTime(h[0]) === formatTime(currentTime))) {
                   highlightsReady = false
                   await ffmpeg.exec([
                     "-ss",
@@ -183,9 +206,9 @@
                     ]
                   ].sort((a, b) => a[0] - b[0])
                   highlightsReady = true
-                } else warning = `You have already captured at ${format(currentTime)}.`
+                } else warning = `You have already captured at ${formatTime(currentTime)}.`
               }}>
-              Capture {format(time)}
+              Capture {formatTime(time)}
             </button>
             <button
               class="bg-gradient-to-b from-slate-500 to-slate-700 hover:from-slate-600 hover:to-slate-700 active:from-slate-700 active:to-slate-600 text-slate-100 disabled:from-slate-200 disabled:to-slate-200 disabled:text-gray-400 font-bold px-3 py-1.5 select-none"
@@ -249,7 +272,7 @@
                     class="bg-gradient-to-b from-slate-300 to-slate-400/50 font-bold px-3 py-1.5 text-center">
                     {getNestedArrayIndex(highlights, [highlightTime, highlightURL]) + 1}
                   </div>
-                  <span class="px-3 py-1.5"> {format(highlightTime)}</span>
+                  <span class="px-3 py-1.5"> {formatTime(highlightTime)}</span>
                   <button
                     class="absolute top-0 right-0 h-9 w-9 p-1 invisible group-hover:visible bg-gradient-to-b hover:from-pink-200/50 hover:to-pink-300/50 active:from-pink-300/50 active:to-pink-400/50"
                     on:click={async () => {
@@ -355,9 +378,9 @@
                   })
                   audioClipsReady = true
                 } else
-                  warning = `You have already clipped at ${format(currentPStart * duration)} - ${format(currentPEnd * duration)}.`
+                  warning = `You have already clipped at ${formatTime(currentPStart * duration)} - ${formatTime(currentPEnd * duration)}.`
               }}>
-              Clip {format(pStart * duration)} - {format(pEnd * duration)}
+              Clip {formatTime(pStart * duration)} - {formatTime(pEnd * duration)}
             </button>
             <button
               class="bg-gradient-to-b from-slate-500 to-slate-700 hover:from-slate-600 hover:to-slate-700 active:from-slate-700 active:to-slate-600 text-slate-100 disabled:from-slate-200 disabled:to-slate-200 disabled:text-gray-400 font-bold px-3 py-1.5 select-none"
@@ -401,7 +424,9 @@
                     ]) + 1}
                   </div>
                   <span class="px-3 py-1.5">
-                    {format(audioClipPStart * duration)} - {format(audioClipPEnd * duration)}</span>
+                    {formatTime(audioClipPStart * duration)} - {formatTime(
+                      audioClipPEnd * duration
+                    )}</span>
                   <button
                     class="absolute top-0 right-0 h-9 w-9 p-1 invisible group-hover:visible bg-gradient-to-b hover:from-pink-200/50 hover:to-pink-300/50 active:from-pink-300/50 active:to-pink-400/50"
                     on:click={async () => {

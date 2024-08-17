@@ -1,3 +1,5 @@
+// https://github.com/ffmpegwasm/ffmpeg.wasm/tree/096f5b2358e4d27d5798308e67382d815d5ae1a4/packages/util/src
+
 const ERROR_RESPONSE_BODY_READER = new Error("failed to get response body reader")
 const ERROR_INCOMPLETED_DOWNLOAD = new Error("failed to complete download")
 const HeaderContentLength = "Content-Length"

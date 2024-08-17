@@ -2,7 +2,13 @@ export function clamp(num, min, max) {
   return num < min ? min : num > max ? max : num
 }
 
-export function format(seconds, decimals = 2) {
+export function formatBytes(b, decimals = 1) {
+  // https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript#comment91365260_42408230
+  let i = ~~(Math.log2(b) / 10)
+  return (b / Math.pow(1024, i)).toFixed(decimals) + ["B", "KiB", "MiB", "GiB", "TiB"][i]
+}
+
+export function formatTime(seconds, decimals = 2) {
   if (isNaN(seconds)) return "--"
 
   const minutes = Math.floor(seconds / 60)
@@ -12,6 +18,7 @@ export function format(seconds, decimals = 2) {
 }
 
 export function getNestedArrayIndex(arr, target) {
+  // https://stackoverflow.com/a/67125183/19102358
   return arr.findIndex(
     (item) =>
       Array.isArray(item) &&
@@ -21,6 +28,7 @@ export function getNestedArrayIndex(arr, target) {
 }
 
 export function waitUntil(condition, action) {
+  // https://stackoverflow.com/questions/7193238/wait-until-a-condition-is-true
   function checkFlag() {
     if (condition()) action()
     else window.setTimeout(checkFlag, 500)
@@ -30,6 +38,7 @@ export function waitUntil(condition, action) {
 }
 
 export function draggable(node) {
+  // https://github.com/mhkeller/svelte-double-range-slider/blob/master/src/DoubleRangeSlider.svelte
   let x
   let y
   let start

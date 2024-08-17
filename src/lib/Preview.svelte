@@ -4,6 +4,7 @@
 
   export let previews
   export let duration
+  export let previewsProgress = 0
   export let numberOfPreviews
 
   let body
@@ -50,9 +51,7 @@
 
 <svelte:window on:resize={(e) => updateVisiblePreviews()} />
 <div class="py-2 h-full w-full">
-  <div
-    class="flex flex-row h-full w-full transform overflow-clip"
-    bind:this={body}>
+  <div class="flex flex-row h-full w-full transform overflow-clip" bind:this={body}>
     {#if previews.length === numberOfPreviews}
       {#each visiblePreviews as [time, url] (`preview_${time}`)}
         <!-- svelte-ignore a11y-missing-attribute -->
@@ -63,7 +62,9 @@
           draggable="false" />
       {/each}
     {:else}
-      <p class="w-full my-auto text-center">Generating previews ...</p>
+      <p class="w-full my-auto text-center">
+        Generating previews ... ({previewsProgress} / {numberOfPreviews})
+      </p>
     {/if}
   </div>
 </div>

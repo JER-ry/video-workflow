@@ -1,7 +1,7 @@
 <!-- https://svelte.dev/repl/media-elements -->
 
 <script>
-  import { clamp, format, draggable } from "$lib/utils.js"
+  import { clamp, formatTime, draggable } from "$lib/utils.js"
 
   // These values are bound to properties of the video
   export let src
@@ -77,7 +77,7 @@
   <div
     class="absolute top-0 w-full p-3 content-center text-white bg-gradient-to-b from-black/50 to-black/0 transition-opacity select-none"
     style="opacity: {duration && showInfo ? 1 : 0}">
-    <b class="text-xl">{format(time)} / {format(duration)}</b>
+    <b class="text-xl">{formatTime(time)} / {formatTime(duration)}</b>
     <br />
     {loading ? "Loading..." : `Click to ${paused ? "play" : "pause"}, drag to seek`}
   </div>
