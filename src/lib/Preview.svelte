@@ -31,6 +31,7 @@
   })
 
   function updateVisiblePreviews() {
+    if (!body || previews.length !== numberOfPreviews) return
     const { width } = body.getBoundingClientRect()
     let visibleWidths = widths.slice(0, 1)
     visiblePreviews = previews.slice(0, 1)
@@ -48,19 +49,21 @@
 </script>
 
 <svelte:window on:resize={(e) => updateVisiblePreviews()} />
-<div
-  class="flex flex-row h-full select-none whitespace-nowrap transform overflow-clip"
-  bind:this={body}>
-  {#if previews.length === numberOfPreviews}
-    {#each visiblePreviews as [time, url] (`preview_${time}`)}
-      <img
-        src={url}
-        style="left: {100 * (time / duration)}%"
-        class="absolute top-0 h-full -translate-x-1/2 select-none"
-        alt={`preview_${time}`}
-        draggable="false" />
-    {/each}
-  {:else}
-    <p class="w-full my-auto text-center">Generating previews ...</p>
-  {/if}
+<div class="py-2 h-full w-full">
+  <div
+    class="flex flex-row h-full w-full transform overflow-clip"
+    bind:this={body}>
+    {#if previews.length === numberOfPreviews}
+      {#each visiblePreviews as [time, url] (`preview_${time}`)}
+        <!-- svelte-ignore a11y-missing-attribute -->
+        <img
+          src={url}
+          style="left: {100 * (time / duration)}%"
+          class="absolute top-0 h-full -translate-x-1/2 select-none"
+          draggable="false" />
+      {/each}
+    {:else}
+      <p class="w-full my-auto text-center">Generating previews ...</p>
+    {/if}
+  </div>
 </div>

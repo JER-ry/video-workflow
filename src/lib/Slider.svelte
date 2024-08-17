@@ -9,7 +9,7 @@
 
   export let enableClipping
   export let pStart = 0
-  export let pEnd = 0.5
+  export let pEnd = 0.1
 
   let leftHandle
 
@@ -30,10 +30,10 @@
         pStart = Math.min(p, pStart)
         pEnd = p
       } else if (which === "time/duration") {
-        if (!timeThreshold || e.detail.time <= 200 ) {
+        if (!timeThreshold || e.detail.time <= 200) {
           time = p * duration
           timeDraggingFunc(!timeThreshold)
-        } 
+        }
       }
     }
   }
@@ -64,11 +64,14 @@
     {#if enableClipping}
       <div
         style="left: {100 * pStart}%; right: {100 * (1 - pEnd)}%;"
-        class="absolute top-0 h-full bg-gradient-to-b from-cyan-100/70 to-cyan-200/30">
+        class="absolute top-0 h-full bg-gradient-to-b from-cyan-100/70 to-cyan-200/30 z-0">
       </div>
     {/if}
-    <div class="py-2 h-full">
+    <div class="h-full w-full select-none whitespace-nowrap absolute top-0 z-20">
       <slot />
+    </div>
+    <div class="h-full w-full select-none whitespace-nowrap absolute top-0 z-30">
+      <slot name="upper" />
     </div>
     {#if enableClipping}
       <div
@@ -76,21 +79,21 @@
         use:draggable
         on:dragmove|preventDefault|stopPropagation={setBodyPosition}
         style="left: {100 * pStart}%; right: {100 * (1 - pEnd)}%;"
-        class="absolute top-0 h-full bg-none">
+        class="absolute top-0 h-full bg-none z-50">
       </div>
       <div
         bind:this={leftHandle}
         use:draggable
         on:dragmove|preventDefault|stopPropagation={setHandlePosition("start")}
         style="left: {100 * pStart}%"
-        class="absolute top-0 w-2 h-full bg-cyan-800 text-white text-sm font-bold flex items-center -translate-x-full">
+        class="absolute top-0 w-2 h-full bg-cyan-800 text-white text-sm font-bold flex items-center -translate-x-full z-50">
         <span class="w-full text-center">&lt;</span>
       </div>
       <div
         use:draggable
         on:dragmove|preventDefault|stopPropagation={setHandlePosition("end")}
         style="left: {100 * pEnd}%"
-        class="absolute top-0 w-2 h-full bg-cyan-800 text-white text-sm font-bold flex items-center">
+        class="absolute top-0 w-2 h-full bg-cyan-800 text-white text-sm font-bold flex items-center z-50">
         <span class="w-full text-center">&gt;</span>
       </div>
     {/if}
@@ -98,6 +101,6 @@
       use:draggable
       on:dragmove|preventDefault|stopPropagation={setHandlePosition("time/duration")}
       style="left: {100 * (time / duration)}%"
-      class="absolute top-0 w-1 h-full bg-pink-600 -translate-x-1/2" />
+      class="absolute top-0 w-1 h-full bg-pink-600 -translate-x-1/2 z-50" />
   </div>
 </div>
