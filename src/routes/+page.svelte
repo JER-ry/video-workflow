@@ -18,13 +18,16 @@
   let warning = null
 
   // step 0
-  let ffmpegProgress = "starting"
+  let ffmpegProgress = ""
   let ffmpegProgressCallback = (event) => {
-    ffmpegProgress = `${formatBytes(event.received)} / ${formatBytes(32129114)}`
+    ffmpegProgress = `(${formatBytes(event.received)} / ${formatBytes(32129114)})`
   }
-  let videoProgress = "starting"
+  let videoProgress = ""
   let videoProgressCallback = (event) => {
-    videoProgress = `${formatBytes(event.received)} / ${formatBytes(event.total)}`
+    videoProgress =
+      event.total > 0
+        ? `(${formatBytes(event.received)} / ${formatBytes(event.total)})`
+        : `(${formatBytes(event.received)})`
   }
 
   // step 1
@@ -53,10 +56,8 @@
       )
     })
     loadingWhich = 1
-    await ffmpeg.writeFile(
-      `main.${videoSourceFormat}`,
-      new Uint8Array(await downloadWithProgress(videoSource, videoProgressCallback))
-    )
+    let videoArray = new Uint8Array(await downloadWithProgress(videoSource, videoProgressCallback))
+    await ffmpeg.writeFile(`main.${videoSourceFormat}`, videoArray)
     const data = await ffmpeg.readFile(`main.${videoSourceFormat}`)
     videoLocalURL = URL.createObjectURL(
       new Blob([data.buffer], { type: `video/${videoSourceFormat}` })
@@ -110,7 +111,7 @@
           {#if loadingWhich === 0}
             <h2 class="text-2xl font-bold text-slate-400">
               <span class="text-cyan-500 font-normal">Now loading</span>
-              depedencies ... ({ffmpegProgress})
+              depedencies ... {ffmpegProgress}
             </h2>
           {:else}
             <h2 class="text-2xl font-bold text-slate-400">
@@ -118,7 +119,7 @@
               depedencies.
               <br />
               <span class="text-cyan-500 font-normal">Now loading</span>
-              your video ... ({videoProgress})
+              your video ... {videoProgress}
             </h2>
           {/if}
         </div>
