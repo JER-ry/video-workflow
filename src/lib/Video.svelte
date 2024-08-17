@@ -35,7 +35,7 @@
 
     if (!duration) return // video not loaded yet
 
-    if (e.detail.time > 200) {
+    if (!e.detail.short) {
       const { left, right } = this.getBoundingClientRect()
       const parentWidth = right - left
       time = clamp(time / duration + e.detail.dx / parentWidth, 0, 1) * duration
@@ -43,7 +43,7 @@
   }
 
   function handleUp(e) {
-    if (e.detail.time <= 200) {
+    if (e.detail.short) {
       if (paused) video.play()
       else video.pause()
 
@@ -58,8 +58,9 @@
   class="transform overflow-clip shadow-center"
   use:draggable
   on:mouseover={triggerInfo}
-  on:dragmove|preventDefault|stopPropagation={handleMove}
-  on:dragend|preventDefault|stopPropagation={handleUp}>
+  on:dragmove|stopPropagation={handleMove}
+  on:dragend|stopPropagation={handleUp}
+  on:touchstart|preventDefault>
   <video
     class="w-full"
     preload="auto"

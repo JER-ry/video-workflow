@@ -33,6 +33,7 @@ export function draggable(node) {
   let x
   let y
   let start
+  let time
 
   function handleMousedown(event) {
     if (event.type === "touchstart") event = event.touches[0]
@@ -62,10 +63,11 @@ export function draggable(node) {
 
     x = event.clientX
     y = event.clientY
+    time = new Date() - start
 
     node.dispatchEvent(
       new CustomEvent("dragmove", {
-        detail: { x, y, dx, dy, time: new Date() - start }
+        detail: { x, y, dx, dy, time }
       })
     )
   }
@@ -75,10 +77,11 @@ export function draggable(node) {
 
     x = event.clientX
     y = event.clientY
+    time = new Date() - start
 
     node.dispatchEvent(
       new CustomEvent("dragend", {
-        detail: { x, y, time: new Date() - start }
+        detail: { x, y, time, short: time <= 200 }
       })
     )
 

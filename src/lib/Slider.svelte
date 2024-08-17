@@ -30,7 +30,7 @@
         pStart = Math.min(p, pStart)
         pEnd = p
       } else if (which === "time/duration") {
-        if (!timeThreshold || e.detail.time <= 200) {
+        if (!timeThreshold || e.detail.short) {
           time = p * duration
           timeDraggingFunc(!timeThreshold)
         }
@@ -39,7 +39,7 @@
   }
 
   function setBodyPosition(e) {
-    if (e.detail.time > 200) {
+    if (!e.detail.short) {
       const { left, right } = slider.getBoundingClientRect()
       const parentWidth = right - left
       const { width, left: bodyLeft } = body.getBoundingClientRect()
@@ -60,7 +60,7 @@
     class="h-full w-full transform"
     bind:this={slider}
     use:draggable
-    on:dragend|preventDefault|stopPropagation={setHandlePosition("time/duration", true)}>
+    on:dragend|stopPropagation={setHandlePosition("time/duration", true)}>
     {#if enableClipping}
       <div
         style="left: {100 * pStart}%; right: {100 * (1 - pEnd)}%;"
@@ -77,21 +77,21 @@
       <div
         bind:this={body}
         use:draggable
-        on:dragmove|preventDefault|stopPropagation={setBodyPosition}
+        on:dragmove|stopPropagation={setBodyPosition}
         style="left: {100 * pStart}%; right: {100 * (1 - pEnd)}%;"
         class="absolute top-0 h-full bg-none z-50">
       </div>
       <div
         bind:this={leftHandle}
         use:draggable
-        on:dragmove|preventDefault|stopPropagation={setHandlePosition("start")}
+        on:dragmove|stopPropagation={setHandlePosition("start")}
         style="left: {100 * pStart}%"
         class="absolute top-0 w-2 h-full bg-cyan-800 text-white text-sm font-bold flex items-center -translate-x-full z-50">
         <span class="w-full text-center">&lt;</span>
       </div>
       <div
         use:draggable
-        on:dragmove|preventDefault|stopPropagation={setHandlePosition("end")}
+        on:dragmove|stopPropagation={setHandlePosition("end")}
         style="left: {100 * pEnd}%"
         class="absolute top-0 w-2 h-full bg-cyan-800 text-white text-sm font-bold flex items-center z-50">
         <span class="w-full text-center">&gt;</span>
@@ -99,7 +99,7 @@
     {/if}
     <div
       use:draggable
-      on:dragmove|preventDefault|stopPropagation={setHandlePosition("time/duration")}
+      on:dragmove|stopPropagation={setHandlePosition("time/duration")}
       style="left: {100 * (time / duration)}%"
       class="absolute top-0 w-1 h-full bg-pink-600 -translate-x-1/2 z-50" />
   </div>
