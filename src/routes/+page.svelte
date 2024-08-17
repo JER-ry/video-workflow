@@ -68,9 +68,14 @@
     waitUntil(
       () => duration > 0,
       async () => {
+        let previousPreviewsProgress = 0
         ffmpeg.on("log", ({ _, message }) => {
-          previewsProgress = message.match(/frame=\s*(\d+)/)
-          previewsProgress = previewsProgress ? parseInt(previewsProgress[1], 10) : 0
+          let tempPreviewsProgress = message.match(/frame=\s*(\d+)/)
+          tempPreviewsProgress = tempPreviewsProgress ? parseInt(tempPreviewsProgress[1], 10) : 0
+          if (tempPreviewsProgress >= previousPreviewsProgress) {
+            previewsProgress = tempPreviewsProgress
+            previousPreviewsProgress = tempPreviewsProgress
+          }
         })
         await ffmpeg.exec([
           "-i",
