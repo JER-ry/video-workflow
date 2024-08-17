@@ -23,6 +23,7 @@
   let previews = []
   let highlights = []
   const numberOfPreviews = 50
+  let highlightsReady = false
 
   let ffmpeg
   onMount(async () => {
@@ -50,6 +51,7 @@
           `fps=${numberOfPreviews / duration}`, // spf=duration/numberOfPreviews
           "previews/out%d.png"
         ])
+        highlightsReady = true
         for (let i = 1; i <= numberOfPreviews; i++) {
           const data = await ffmpeg.readFile(`previews/out${i}.png`)
           previews.push([
@@ -123,7 +125,7 @@
           <div class="flex flex-row space-x-5">
             <button
               class="bg-gradient-to-b from-slate-500 to-slate-700 hover:from-slate-600 hover:to-slate-700 active:from-slate-700 active:to-slate-600 text-slate-100 disabled:from-slate-200 disabled:to-slate-200 disabled:text-gray-400 font-bold px-3 py-1.5 select-none"
-              disabled={!duration}
+              disabled={!highlightsReady}
               on:click={async () => {
                 const currentTime = time
                 // if time hasn't been added to highlights
